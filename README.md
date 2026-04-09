@@ -109,16 +109,20 @@ BOJ_STAT
 │   README.md
 │   app.py
 │   user_data.db
-└───api
-    │   main.py
-    │   boj_user_page.py
-    │   solved_user_page.py
-└───badge_generator
-    │   v1_badge.py
-    │   v2_badge_ko.py
-    │   v2_badge_en.py
+├───api
+│   │   main.py
+│   │   boj_user_page.py
+│   │   solved_user_page.py
+├───badge_generator
+│   │   v1_badge.py
+│   │   v2_badge_ko.py
+│   │   v2_badge_en.py
+├───models
+│   │   __init__.py
+│   │   user_stats.py
 └───tier_image
     │   solved.ac 티어 PNG 이미지 31개
+
 ```
 
 ![image](https://github.com/user-attachments/assets/d6fff484-a7fb-41da-ba90-9342a7c56fe4)
