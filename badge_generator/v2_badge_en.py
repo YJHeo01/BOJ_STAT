@@ -1,13 +1,15 @@
 import svgwrite, base64
 
-def create_svg(data):
+from models.user_stats import UserStats
+
+def create_svg(data: UserStats):
     
     stats = {
-        "Solved Problems": str(data['solvedCount']),
-        "Authored Problems": data['createdCount'],
-        "Reviewed Problems": data['reviewedCount'],
-        "Fixed Problems": str(data['fixedCount']),
-        "Rating Contributions": str(data['voteCount'])
+        "Solved Problems": str(data.solvedCount),
+        "Authored Problems": data.createdCount,
+        "Reviewed Problems": data.reviewedCount,
+        "Fixed Problems": str(data.fixedCount),
+        "Rating Contributions": str(data.voteCount)
     }
     # 뱃지 전체 크기 설정
 
@@ -27,7 +29,7 @@ def create_svg(data):
     dwg.add(bg_rect)
     
     # 타이틀 텍스트
-    title = f"{data['handle']}'s BOJ Stats"
+    title = f"{data.handle}'s BOJ Stats"
     dwg.add(dwg.text(
         title,
         insert=(20, 30),
@@ -64,7 +66,7 @@ def create_svg(data):
             font_weight="bold"
         ))
     
-    tier = data['tier']
+    tier = data.tier
     tier_file_name =  f'tier_image/{tier}.png'
     with open(tier_file_name, 'rb') as f:
         tier_encoded = base64.b64encode(f.read()).decode('utf-8')
