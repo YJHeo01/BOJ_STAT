@@ -1,24 +1,19 @@
-import sys, sqlite3, logging
+import logging
+import sqlite3
+import sys
 from datetime import datetime
+
 from api.boj_user_page import boj_user_data
 from api.solved_user_page import solved_user_data
+from models.user_stats import DEFAULT_CACHE_DATE, UserStats
 
 logger = logging.getLogger(__name__)
 
 def main(username):
-    ret_value = {
-        'handle':username,
-        'solvedCount': '0',
-        'createdCount':'0',
-        'reviewedCount':0,
-        'fixedCount':0,
-        'voteCount':0,
-        'tier': 0,
-        'class':0  
-    }
+    ret_value = UserStats.empty(username)
+    connection = None
     try:
-        date = datetime.now()
-        date = date.isoformat()[:10]
+        current_date = datetime.now().isoformat()[:10]
 
         connection = sqlite3.connect("user_data.db")
         cursor = connection.cursor()
@@ -41,26 +36,27 @@ def main(username):
         stats = cursor.fetchone()
 
         if stats is None:
-            stats = (username, 0, '0', '0', 0, 0, 0, 0, '2000-01-01')
-            cursor.execute("INSERT INTO users VALUES (?,?,?,?,?,?,?,?,?)", stats)
+            ret_value = UserStats.empty(username, date=DEFAULT_CACHE_DATE)
+            cursor.execute("INSERT INTO users VALUES (?,?,?,?,?,?,?,?,?)", ret_value.to_insert_params())
             connection.commit()
+        else:
+            ret_value = UserStats.from_db_row(stats)
 
-        ret_value = convert_data(stats)
-
-        if stats[8] != date:
+        if ret_value.is_stale(current_date):
             boj_data = boj_user_data(username)
-            if boj_data['fixedCount'] == -1: return ret_value
+            if boj_data.is_failure:
+                return ret_value
 
             solved_data = solved_user_data(username)
-            for label in ['solvedCount','voteCount','tier','class']:
-                if solved_data[label] < 0: return ret_value
-            
+            if solved_data.has_error:
+                return ret_value
+
+            ret_value = UserStats.from_sources(username, boj_data, solved_data, current_date)
             cursor.execute(
                 "UPDATE users SET solvedCount=?, createdCount=?, reviewedCount=?, fixedCount=?, voteCount=?, tier=?, class=?, date=? WHERE handle=?",
-                (max(boj_data['solvedCount'],solved_data['solvedCount']), boj_data['createdCount'], boj_data['reviewedCount'], boj_data['fixedCount'], solved_data['voteCount'],solved_data['tier'], solved_data['class'], date, username)
+                ret_value.to_update_params()
             )
             connection.commit()
-            ret_value = convert_data((username,max(boj_data['solvedCount'],solved_data['solvedCount']),boj_data['createdCount'], boj_data['reviewedCount'], boj_data['fixedCount'], solved_data['voteCount'],solved_data['tier'], solved_data['class'], date))
     except sqlite3.Error as e:
         logger.error(f"Database error: {e}")
         if connection:
@@ -70,13 +66,6 @@ def main(username):
     finally:
         if connection:
             connection.close()
-    return ret_value
-
-def convert_data(data):
-    ret_value = {}
-    labels = ['handle','solvedCount','createdCount','reviewedCount','fixedCount','voteCount','tier','class']
-    for i in range(8):
-        ret_value[labels[i]] = data[i]
     return ret_value
     
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 import svgwrite
 
-def create_svg(data):
+from models.user_stats import UserStats
+
+def create_svg(data: UserStats):
     # 뱃지 전체 크기 설정
     width = 400
     height = 280
@@ -26,11 +28,11 @@ def create_svg(data):
     line_height = 35
     
     stats = [
-        ("BOJ Handle", data['handle']),
-        ("만든 문제", data['createdCount']),
-        ("검수한 문제", data['reviewedCount']),
-        ("공헌한 문제", str(data['fixedCount'])),
-        ("난이도 기여", str(data['voteCount']))
+        ("BOJ Handle", data.handle),
+        ("만든 문제", data.createdCount),
+        ("검수한 문제", data.reviewedCount),
+        ("공헌한 문제", str(data.fixedCount)),
+        ("난이도 기여", str(data.voteCount))
     ]
     
     # 좌측과 우측 영역을 나누는 기준 x좌표 (라인 추가)

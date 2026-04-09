@@ -1,14 +1,11 @@
 import requests, logging
 from bs4 import BeautifulSoup
 
+from models.user_stats import BojUserData
+
 logger = logging.getLogger(__name__)
 
-failure_data = {
-    'solvedCount': -1,
-    'createdCount': '-1',
-    'reviewedCount': '-1',
-    'fixedCount': -1
-}
+failure_data = BojUserData.failure()
 
 def boj_user_data(username):
     boj_url = 'https://www.acmicpc.net/user/{}'.format(username)
@@ -41,12 +38,12 @@ def parse_html(html):
             tmp = contributed_tag.find_next_sibling('td').get_text(strip=True) if contributed_tag else 0
             fixed_cnt += int(tmp)
     
-        data = {
-            'solvedCount': int(solved_cnt),
-            'createdCount': created_cnt,
-            'reviewedCount': reviewed_cnt,
-            'fixedCount': fixed_cnt
-        }
+        data = BojUserData(
+            solvedCount=int(solved_cnt),
+            createdCount=created_cnt,
+            reviewedCount=reviewed_cnt,
+            fixedCount=fixed_cnt
+        )
     except Exception as e:
         logger.error(f"Error parsing HTML: {e}")
         data = failure_data
