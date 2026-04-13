@@ -99,6 +99,23 @@
 
 - Python
 - Flask
+- requests
+- BeautifulSoup4
+- SQLite
+- svgwrite
+
+---
+
+## 🧭 현재 구조
+
+- `app.py` : Flask 라우트와 HTTP 응답을 담당합니다.
+- `services/` : 사용자 통계 조회, 캐시 확인, 외부 데이터 병합 같은 비즈니스 흐름을 담당합니다.
+- `repositories/` : SQLite 기반 사용자 통계 캐시 저장소를 담당합니다.
+- `clients/` : BOJ / solved.ac 외부 요청과 timeout, retry 정책을 담당합니다.
+- `parsers/` : BOJ HTML, solved.ac 응답을 내부 모델로 변환합니다.
+- `models/` : `UserStats`, `BojUserData`, `SolvedUserData` 등 도메인 모델을 정의합니다.
+- `badge_generator/` : SVG 뱃지 렌더링을 담당합니다.
+- `tier_image/` : solved.ac 티어 이미지를 보관합니다.
 
 ---
 
@@ -109,17 +126,24 @@ BOJ_STAT
 │   README.md
 │   app.py
 │   user_data.db
-├───api
-│   │   main.py
-│   │   boj_user_page.py
-│   │   solved_user_page.py
 ├───badge_generator
 │   │   v1_badge.py
 │   │   v2_badge_ko.py
 │   │   v2_badge_en.py
+├───clients
+│   │   boj_client.py
+│   │   solvedac_client.py
+│   │   http_session.py
 ├───models
 │   │   __init__.py
 │   │   user_stats.py
+├───parsers
+│   │   boj_profile_parser.py
+│   │   solvedac_user_parser.py
+├───repositories
+│   │   user_stats_repository.py
+├───services
+│   │   user_stats_service.py
 └───tier_image
     │   solved.ac 티어 PNG 이미지 31개
 
