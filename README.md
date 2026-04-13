@@ -148,8 +148,32 @@ BOJ_STAT
     │   solved.ac 티어 PNG 이미지 31개
 
 ```
+```mermaid
+flowchart TD
+    A["Request<br/>app.py"] --> B["UserStatsService"]
+    B --> C["UserStatsRepository"]
+    C --> D{"cache fresh?"}
 
-![image](https://github.com/user-attachments/assets/d6fff484-a7fb-41da-ba90-9342a7c56fe4)
+    D -- "yes" --> E["UserStats"]
+    D -- "no" --> F["BojClient"]
+    D -- "no" --> G["SolvedAcClient"]
+
+    F --> H["BojProfileParser"]
+    G --> I["SolvedAcUserParser"]
+
+    H --> J["BojUserData"]
+    I --> K["SolvedUserData"]
+
+    J --> L["merge"]
+    K --> L
+
+    L --> M["UserStatsRepository update"]
+    M --> E
+
+    E --> N["badge_generator"]
+    N --> O["SVG Response"]
+
+```
 
 ---
 
