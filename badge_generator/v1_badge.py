@@ -1,5 +1,6 @@
 import svgwrite
 
+from badge_generator.formatting import format_stat
 from models.user_stats import UserStats
 
 def create_svg(data: UserStats):
@@ -31,8 +32,8 @@ def create_svg(data: UserStats):
         ("BOJ Handle", data.handle),
         ("만든 문제", data.createdCount),
         ("검수한 문제", data.reviewedCount),
-        ("공헌한 문제", str(data.fixedCount)),
-        ("난이도 기여", str(data.voteCount))
+        ("공헌한 문제", data.fixedCount),
+        ("난이도 기여", data.voteCount)
     ]
     
     # 좌측과 우측 영역을 나누는 기준 x좌표 (라인 추가)
@@ -55,7 +56,7 @@ def create_svg(data: UserStats):
         ))
         # 값 텍스트 (오른쪽 정렬)
         dwg.add(dwg.text(
-            value,
+            format_stat(value),
             insert=(width - 20, y),
             text_anchor="end",
             fill="white",

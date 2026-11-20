@@ -1,16 +1,25 @@
 from models.user_stats import SolvedUserData
 
+SQLITE_MAX_INTEGER = (1 << 63) - 1
+
+
+def _integer(value: object, field: str, maximum: int = SQLITE_MAX_INTEGER) -> int:
+    if type(value) is not int or not 0 <= value <= maximum:
+        raise ValueError(f"Invalid {field} in solved.ac profile")
+    return value
+
 
 class SolvedAcUserParser:
-    def parse(self, information: dict) -> SolvedUserData:
-        class_value = information["class"] * 3
-        if information["classDecoration"] == "silver":
-            class_value += 1
-        if information["classDecoration"] == "gold":
-            class_value += 2
+    def parse(self, information: object) -> SolvedUserData:
+        if not isinstance(information, dict):
+            raise ValueError("Expected a solved.ac profile object")
+        if not {"solvedCount", "voteCount", "tier", "class"}.issubset(information):
+            raise ValueError("Missing required solved.ac profile fields")
+
+        tier = information["tier"]
         return SolvedUserData(
-            solvedCount=information["solvedCount"],
-            voteCount=information["voteCount"],
-            tier=information["tier"],
-            classValue=class_value,
+            solvedCount=_integer(information["solvedCount"], "solvedCount"),
+            voteCount=_integer(information["voteCount"], "voteCount"),
+            tier=0 if tier is None else _integer(tier, "tier", maximum=31),
+            classValue=_integer(information["class"], "class", maximum=10) * 3,
         )
