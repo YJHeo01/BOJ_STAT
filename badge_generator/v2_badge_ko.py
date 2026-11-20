@@ -1,15 +1,16 @@
 import svgwrite, base64
 
+from badge_generator.formatting import format_stat
 from models.user_stats import UserStats
 
 def create_svg(data: UserStats):
     
     stats = {
-        "해결한 문제": str(data.solvedCount),
+        "해결한 문제": data.solvedCount,
         "제작한 문제": data.createdCount,
         "검수한 문제": data.reviewedCount,
-        "공헌한 문제": str(data.fixedCount),
-        "난이도 기여": str(data.voteCount)
+        "공헌한 문제": data.fixedCount,
+        "난이도 기여": data.voteCount
     }
     # 뱃지 전체 크기 설정
 
@@ -57,7 +58,7 @@ def create_svg(data: UserStats):
         ))
         # 값 텍스트
         dwg.add(dwg.text(
-            stats[label],
+            format_stat(stats[label]),
             insert=(width // 2 + 40, y),
             text_anchor="end",
             fill="#fffff0",
@@ -66,12 +67,9 @@ def create_svg(data: UserStats):
             font_weight="bold"
         ))
     
-    tier = data.tier
-    tier_file_name =  f'tier_image/{tier}.png'
-    with open(tier_file_name, 'rb') as f:
-        tier_encoded = base64.b64encode(f.read()).decode('utf-8')
-# data URI 생성
-    tier_uri = f'data:image/png;base64,{tier_encoded}'
-# SVG에 이미지 삽입
-    dwg.add(dwg.image(href=tier_uri, insert=((width // 2 + 40+width)//2 - 45, 185 // 2-50), size=(100, 100)))
+    if data.tier is not None:
+        with open(f'tier_image/{data.tier}.png', 'rb') as f:
+            tier_encoded = base64.b64encode(f.read()).decode('utf-8')
+        tier_uri = f'data:image/png;base64,{tier_encoded}'
+        dwg.add(dwg.image(href=tier_uri, insert=((width // 2 + 40+width)//2 - 45, 185 // 2-50), size=(100, 100)))
     return dwg.tostring()

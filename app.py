@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from dotenv import load_dotenv
 from werkzeug.exceptions import HTTPException
 from flask import Flask, Response, jsonify, request
 import badge_generator.v1_badge as v1_badge
@@ -21,6 +24,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
+load_dotenv(Path(__file__).resolve().with_name(".env"), override=False)
 user_stats_service = UserStatsService()
 
 

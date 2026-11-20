@@ -106,6 +106,35 @@
 
 ---
 
+## 서버 실행 및 v4 연동 확인
+
+Python 3.10 이상에서 저장소 루트로 이동한 뒤 의존성을 설치하고 테스트를 실행합니다. 테스트는 모의 API와 임시 SQLite DB를 사용하므로 앱 인증 정보 없이 실행할 수 있습니다.
+
+```shell
+python -m pip install -r requirements.txt
+python -m unittest discover -s tests -v
+```
+
+처음 설정할 때 프로젝트 루트에 `.env`가 없으면 `.env.example`을 복사해 만듭니다. PowerShell에서는 다음 명령을 사용합니다.
+
+```powershell
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
+```
+
+`.env`의 `SOLVEDAC_CLIENT_ID=`와 `SOLVEDAC_CLIENT_SECRET=`에 각각 [solved.ac Backstage](https://backstage.solved.ac/developer/apps)에서 발급받은 값을 입력하고 서버를 시작합니다. Git은 `.env`를 제외합니다. 서버에 이미 설정된 환경변수가 있으면 해당 값이 우선합니다. 파일을 수정한 뒤에는 서버를 재시작하세요.
+
+```shell
+python -m flask --app app run
+```
+
+뱃지 요청이 서버에 도달하면 BOJ 프로필과 solved.ac v4 프로필(`GET /api/v4/users/{handle}`)을 각각 확인합니다. 오늘 이미 성공한 출처는 캐시를 사용합니다. 한쪽 조회가 실패해도 성공한 쪽의 결과는 바로 저장합니다. 다음 요청에서는 아직 갱신되지 않은 출처만 다시 조회합니다.
+
+BOJ의 제작·검수·공헌 수와 solved.ac의 난이도 기여·티어는 각 출처에서 마지막으로 확인한 값을 표시합니다. 조회에 한 번도 성공하지 못한 수치는 `—`로 표시하며, 해결한 문제 수는 두 출처의 마지막 확인값 중 큰 값을 사용합니다. solved.ac에서 정상적인 사용자 없음(404) 응답을 받으면 해당 출처의 통계를 0으로 기록합니다. 정상 응답의 `tier=null`도 0번 이미지로 표시합니다. [v4 API 명세](https://backstage.solved.ac/developer/docs)
+
+SQLite의 `users.date`는 두 출처 모두 같은 서버 날짜에 성공했을 때만 바뀝니다. 각 출처의 성공 날짜와 해결 수는 `user_source_cache`에 저장합니다. 기존 DB는 그대로 사용할 수 있고, 옛 캐시에 합산 결과만 있는 경우 두 출처의 개별 수치를 확보할 때까지 기존 해결 수를 보존합니다. `users.class`에는 CLASS 번호 × 3을 저장합니다.
+
+---
+
 ## 🧭 현재 구조
 
 - `app.py` : Flask 라우트와 HTTP 응답을 담당합니다.

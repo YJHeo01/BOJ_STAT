@@ -26,7 +26,7 @@ class BojClient:
 
     def fetch_user_data(self, username: str) -> BojUserData:
         boj_url = f"https://www.acmicpc.net/user/{username}"
-        headers = {"User-Agent": BOJ_USER_AGENT}
+        headers = {"User-Agent": BOJ_USER_AGENT, "Accept-Language": "ko"}
         try:
             response = self.session.get(boj_url, headers=headers, timeout=self.timeout)
         except requests.RequestException as exc:

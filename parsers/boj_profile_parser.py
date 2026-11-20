@@ -35,7 +35,8 @@ class BojProfileParser:
     def parse(self, html: str) -> BojUserData:
         try:
             soup = BeautifulSoup(html, "html.parser")
-            solved_count = self._find_count(soup, SOLVED_COUNT_LABEL)
+            # A profile always has this row, even when the user has solved zero problems.
+            solved_count = int(self._find_raw_value(soup, SOLVED_COUNT_LABEL, required=True))
             created_count = self._find_raw_value(soup, CREATED_COUNT_LABEL)
             reviewed_count = self._find_raw_value(soup, REVIEWED_COUNT_LABEL)
             fixed_count = sum(self._find_count(soup, label) for label in FIXED_COUNT_LABELS)
@@ -45,22 +46,25 @@ class BojProfileParser:
                 reviewedCount=reviewed_count,
                 fixedCount=fixed_count,
             )
-        except Exception as exc:
-            logger.error(f"Error parsing BOJ profile HTML: {exc}")
+        except ValueError as exc:
+            logger.warning("Could not read BOJ profile statistics: %s", exc)
             return BojUserData.failure()
 
     @staticmethod
-    def _find_raw_value(soup: BeautifulSoup, label: str) -> str:
+    def _find_raw_value(soup: BeautifulSoup, label: str, *, required: bool = False) -> str:
         tag = next(
             (candidate for candidate in soup.find_all("th") if candidate.get_text(strip=True) == label),
             None,
         )
         if tag is None:
+            if required:
+                raise ValueError(f"missing profile row: {label}")
             return "0"
         sibling = tag.find_next_sibling("td")
-        if sibling is None:
-            return "0"
-        return sibling.get_text(strip=True)
+        value = sibling.get_text(strip=True) if sibling is not None else ""
+        if not value:
+            raise ValueError(f"missing count for profile row: {label}")
+        return value
 
     def _find_count(self, soup: BeautifulSoup, label: str) -> int:
         return int(self._find_raw_value(soup, label))
